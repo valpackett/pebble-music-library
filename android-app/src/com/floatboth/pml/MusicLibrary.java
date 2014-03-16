@@ -174,7 +174,7 @@ public class MusicLibrary {
           /* 1 */ AudioColumns.TITLE,
           /* 2 */ AudioColumns.ALBUM,
           /* 3 */ AudioColumns.ALBUM
-        }, selection.toString(), null, MediaStore.Audio.Media.DEFAULT_SORT_ORDER);
+        }, selection.toString(), null, MediaStore.Audio.Media.TRACK + ", " + MediaStore.Audio.Media.DEFAULT_SORT_ORDER);
   }
 
   public ArrayList<Song> getAlbumSongs(final Long albumId) {
