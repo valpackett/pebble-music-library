@@ -1,0 +1,14 @@
+{
+  "uuid": "5b51cba8-7750-441e-a012-f41510348434",
+  "shortName": "Music Library",
+  "longName": "Music Library",
+  "companyName": "{ float: both }",
+  "versionCode": 1,
+  "versionLabel": "0.1.0",
+  "watchapp": {
+    "watchface": false
+  },
+  "resources": {
+    "media": []
+  }
+}
