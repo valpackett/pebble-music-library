@@ -51,7 +51,7 @@ Phone -> Pebble
 
 Pebble -> Phone
 
-- `MSG_TYPE` (0) = `GET_ALBUM_SONGS` (48)
+- `MSG_TYPE` (0) = `GET_ALBUM_SONGS` (48)  
   `ID` (102) = 125
 
 Phone -> Pebble
