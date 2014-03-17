@@ -29,7 +29,7 @@ Pebble -> Phone
 
 or
 
-- `MSG_TYPE` (0) = `GET_ALBUMS` (20)
+- `MSG_TYPE` (0) = `GET_ALBUMS` (20)  
   `ID` (102) = 12345
 
 where `ID` is the artist ID
