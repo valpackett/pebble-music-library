@@ -71,7 +71,7 @@ Phone -> Pebble
 
 Pebble -> Phone
 
-- `MSG_TYPE` (0) = `PLAY_SONG` (90)
-  `INDEX` (101) = 1 (zero-based index of song in album)
+- `MSG_TYPE` (0) = `PLAY_SONG` (90)  
+  `INDEX` (101) = 1 (zero-based index of song in album)  
   `ID` (102) = 125 (album id)
 
