@@ -1,5 +1,3 @@
-#include <pebble.h>
-#include "data.c"
 #include "entry_list.h"
 #define MAX_STACK_DEPTH 4
 

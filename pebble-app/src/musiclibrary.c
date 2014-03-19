@@ -1,7 +1,7 @@
 #include <pebble.h>
 #include "main_menu.h"
-#include "data.c"
 #include "entry_list.h"
+#include "comm.h"
 
 static void in_received_handler(DictionaryIterator *iter, void *context) {
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Received Message");

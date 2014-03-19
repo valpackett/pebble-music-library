@@ -1,40 +1,6 @@
-#ifndef MSG_TYPE
+#include "comm.h"
 
-#include <pebble.h>
-
-#define MSG_TYPE 0
-enum mtype {
-  REQ,
-  RSP_START,
-  RSP_DATA,
-  RSP_END, // ununsed
-  PLAY
-};
-
-#define MSG_CTX 1
-#define MSG_PARENT_CTX 2
-enum mcontext {
-  ARTISTS,
-  ALBUMS,
-  PLAYLISTS,
-  SONGS
-};
-
-#define COUNT 100
-#define INDEX 101
-#define ID 102
-#define NAME 103
-
-// http://blog.liw.fi/posts/strncpy/
-#define fucking_copy_string(dst, src, len) if (snprintf((dst), (len), "%s", (src)) >= (len)) snprintf((dst), (len), "%s", "Overflow Error")
-#define ENTRY_NAME_LEN 64
-
-typedef struct {
-  uint32_t id;
-  char name[ENTRY_NAME_LEN];
-} Entry;
-
-static void request_data(int8_t context, int8_t parent_context, int8_t id) {
+void request_data(int8_t context, int8_t parent_context, int8_t id) {
   if (bluetooth_connection_service_peek()) {
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
@@ -54,7 +20,7 @@ static void request_data(int8_t context, int8_t parent_context, int8_t id) {
   }
 }
 
-static void request_play(int8_t parent_context, int32_t parent_id, int8_t index) {
+void request_play(int8_t parent_context, int32_t parent_id, int8_t index) {
   if (bluetooth_connection_service_peek()) {
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
@@ -69,5 +35,3 @@ static void request_play(int8_t parent_context, int32_t parent_id, int8_t index)
     app_message_outbox_send();
   }
 }
-
-#endif

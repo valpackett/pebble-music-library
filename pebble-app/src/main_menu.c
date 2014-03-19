@@ -1,7 +1,4 @@
-#include <pebble.h>
-#include "entry_list.h"
 #include "main_menu.h"
-#include "data.c"
 
 #define ARTISTS_ITEM 0
 #define ALBUMS_ITEM 1

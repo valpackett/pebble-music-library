@@ -1,8 +1,10 @@
-#ifndef ENTRY_LIST
-#define ENTRY_LIST
+#ifndef _ENTRY_LIST
+#define _ENTRY_LIST
 
 #include <pebble.h>
-#include "data.c"
+#include "entry.h"
+#include "util.h"
+#include "comm.h"
 
 typedef struct {
   Window *window;
