@@ -3,17 +3,23 @@
 #include <pebble.h>
 
 #define MSG_TYPE 0
-#define GET_ARTISTS 10
-#define START_ARTISTS 11
-#define SEND_ARTISTS 12
-#define GET_ALBUMS 20
-#define START_ALBUMS 21
-#define SEND_ALBUMS 22
-// 3x -- playlists
-#define GET_ALBUM_SONGS 48
-#define START_SONGS 41
-#define SEND_SONGS 42
-#define PLAY_ALBUM_SONG 43
+enum mtype {
+  REQ,
+  RSP_START,
+  RSP_DATA,
+  RSP_END, // ununsed
+  PLAY
+};
+
+#define MSG_CTX 1
+#define MSG_PARENT_CTX 2
+enum mcontext {
+  ARTISTS,
+  ALBUMS,
+  PLAYLISTS,
+  SONGS
+};
+
 #define COUNT 100
 #define INDEX 101
 #define ID 102
@@ -28,12 +34,18 @@ typedef struct {
   char name[ENTRY_NAME_LEN];
 } Entry;
 
-static void request_data(uint8_t data_type, int8_t id) {
+static void request_data(int8_t context, int8_t parent_context, int8_t id) {
   if (bluetooth_connection_service_peek()) {
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
-    Tuplet mtype = TupletInteger(MSG_TYPE, data_type);
-    dict_write_tuplet(iter, &mtype);
+    Tuplet mmtype = TupletInteger(MSG_TYPE, REQ);
+    dict_write_tuplet(iter, &mmtype);
+    Tuplet mmctx = TupletInteger(MSG_CTX, context);
+    dict_write_tuplet(iter, &mmctx);
+    if (parent_context > -1) {
+      Tuplet mmpctx = TupletInteger(MSG_PARENT_CTX, parent_context);
+      dict_write_tuplet(iter, &mmpctx);
+    }
     if (id > -1) {
       Tuplet mid = TupletInteger(ID, id);
       dict_write_tuplet(iter, &mid);
@@ -42,12 +54,14 @@ static void request_data(uint8_t data_type, int8_t id) {
   }
 }
 
-static void request_play(uint8_t data_type, int32_t parent_id, int8_t index) {
+static void request_play(int8_t parent_context, int32_t parent_id, int8_t index) {
   if (bluetooth_connection_service_peek()) {
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
-    Tuplet mtype = TupletInteger(MSG_TYPE, data_type);
-    dict_write_tuplet(iter, &mtype);
+    Tuplet mmtype = TupletInteger(MSG_TYPE, PLAY);
+    dict_write_tuplet(iter, &mmtype);
+    Tuplet mmpctx = TupletInteger(MSG_PARENT_CTX, parent_context);
+    dict_write_tuplet(iter, &mmpctx);
     Tuplet mid = TupletInteger(ID, parent_id);
     dict_write_tuplet(iter, &mid);
     Tuplet mindex = TupletInteger(INDEX, index);

@@ -11,7 +11,7 @@ typedef struct {
   MenuLayerSelectCallback onclick;
   uint16_t entries_count;
   uint16_t entries_count_max;
-  int8_t parent_data_type;
+  uint8_t parent_context;
   int32_t parent_id;
 } EntryList;
 
@@ -23,7 +23,7 @@ EntryList *entry_list_init();
 void artist_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data);
 void album_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data);
 void song_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data);
-void entry_list_show(EntryList *self, int8_t parent_type, int8_t parent_play_type, int8_t parent_id);
+void entry_list_show(EntryList *self, int8_t context, int8_t parent_context, int32_t parent_id);
 void entry_list_deinit(EntryList *self);
 bool entry_list_is_active(EntryList *self);
 void entry_list_content_start(EntryList *self, uint16_t count);

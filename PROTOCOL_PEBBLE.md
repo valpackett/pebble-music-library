@@ -6,17 +6,21 @@ This document describes the messages between the Pebble app and the phone app.
 
 Pebble -> Phone
 
-- `MSG_TYPE` (0) = `GET_ARTISTS` (10)
+- `MSG_TYPE` (0) = `REQ` (0)  
+  `MSG_CTX` (1) = `ARTISTS` (0)  
 
 Phone -> Pebble
 
-- `MSG_TYPE` (0) = `START_ARTISTS` (11)  
-  `COUNT` (100) = 2
-- `MSG_TYPE` (0) = `SEND_ARTISTS` (12)  
+- `MSG_TYPE` (0) = `RSP_START` (1)  
+  `MSG_CTX` (1) = `ARTISTS` (0)  
+  `COUNT` (100) = 2  
+- `MSG_TYPE` (0) = `RSP_DATA` (2)  
+  `MSG_CTX` (1) = `ARTISTS` (0)  
   `INDEX` (101) = 0  
   `ID` (102) = 12345  
   `NAME` (103) = "Paramore"
-- `MSG_TYPE` (0) = `SEND_ARTISTS` (12)  
+- `MSG_TYPE` (0) = `RSP_DATA` (2)  
+  `MSG_CTX` (1) = `ARTISTS` (0)  
   `INDEX` (101) = 1  
   `ID` (102) = 54321  
   `NAME` (103) = "Placebo"
@@ -25,53 +29,64 @@ Phone -> Pebble
 
 Pebble -> Phone
 
-- `MSG_TYPE` (0) = `GET_ALBUMS` (20)
+- `MSG_TYPE` (0) = `REQ` (0)  
+  `MSG_CTX` (1) = `ALBUMS` (1)  
 
 or
 
-- `MSG_TYPE` (0) = `GET_ALBUMS` (20)  
+- `MSG_TYPE` (0) = `REQ` (0)  
+  `MSG_CTX` (1) = `ALBUMS` (1)  
   `ID` (102) = 12345
 
 where `ID` is the artist ID
 
 Phone -> Pebble
 
-- `MSG_TYPE` (0) = `START_ALBUMS` (21)  
+- `MSG_TYPE` (0) = `RSP_START` (1)  
+  `MSG_CTX` (1) = `ALBUMS` (1)  
   `COUNT` (100) = 2
-- `MSG_TYPE` (0) = `SEND_ALBUMS` (22)  
+- `MSG_TYPE` (0) = `RSP_DATA` (2)  
+  `MSG_CTX` (1) = `ALBUMS` (1)  
   `INDEX` (101) = 0  
   `ID` (102) = 150  
   `NAME` (103) = "All We Know Is Falling"
-- `MSG_TYPE` (0) = `SEND_ALBUMS` (22)  
+- `MSG_TYPE` (0) = `RSP_DATA` (2)  
+  `MSG_CTX` (1) = `ALBUMS` (1)  
   `INDEX` (101) = 1  
   `ID` (102) = 125  
   `NAME` (103) = "RIOT!"
 
-## Getting Songs
+## Getting Songs from an Album
 
 Pebble -> Phone
 
-- `MSG_TYPE` (0) = `GET_ALBUM_SONGS` (48)  
-  `ID` (102) = 125
+- `MSG_TYPE` (0) = `REQ` (0)  
+  `MSG_CTX` (1) = `SONGS` (3)  
+  `MSG_PARENT_CTX` (2) = `ALBUMS` (1)  
+  `ID` (102) = 125  
 
 Phone -> Pebble
 
-- `MSG_TYPE` (0) = `START_SONGS` (41)  
+- `MSG_TYPE` (0) = `RSP_START` (1)  
+  `MSG_CTX` (1) = `SONGS` (3)  
   `COUNT` (100) = 2
-- `MSG_TYPE` (0) = `SEND_SONGS` (42)  
+- `MSG_TYPE` (0) = `RSP_DATA` (2)  
+  `MSG_CTX` (1) = `SONGS` (3)  
   `INDEX` (101) = 0  
   `ID` (102) = 78345  
   `NAME` (103) = "When It Rains"
-- `MSG_TYPE` (0) = `SEND_SONGS` (42)  
+- `MSG_TYPE` (0) = `RSP_DATA` (2)  
+  `MSG_CTX` (1) = `SONGS` (3)  
   `INDEX` (101) = 1  
   `ID` (102) = 35627  
   `NAME` (103) = "Let the Flames Begin"
 
-## Playing Songs
+## Playing Songs from an Album
 
 Pebble -> Phone
 
-- `MSG_TYPE` (0) = `PLAY_SONG` (90)  
+- `MSG_TYPE` (0) = `PLAY` (4)  
+  `MSG_PARENT_CTX` (2) = `ALBUMS` (1)  
   `INDEX` (101) = 1 (zero-based index of song in album)  
   `ID` (102) = 125 (album id)
 

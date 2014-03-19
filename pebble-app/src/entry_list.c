@@ -22,21 +22,21 @@ void artist_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *
   EntryList *self = ((EntryList *) data);
   Entry entry = self->entries[cell_index->row];
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Clicked artist #%d -- %s", cell_index->row, entry.name);
-  entry_list_show(albums, GET_ALBUMS, GET_ALBUM_SONGS, entry.id);
+  entry_list_show(albums, ALBUMS, -1, entry.id);
 }
 
 void album_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
   EntryList *self = ((EntryList *) data);
   Entry entry = self->entries[cell_index->row];
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Clicked album #%d -- %s", cell_index->row, entry.name);
-  entry_list_show(songs, GET_ALBUM_SONGS, PLAY_ALBUM_SONG, entry.id);
+  entry_list_show(songs, SONGS, ALBUMS, entry.id);
 }
 
 void song_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
   EntryList *self = ((EntryList *) data);
   Entry entry = self->entries[cell_index->row];
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Clicked song #%d -- %s", cell_index->row, entry.name);
-  request_play(self->parent_data_type, self->parent_id, cell_index->row);
+  request_play(self->parent_context, self->parent_id, cell_index->row);
 }
 
 static void entry_list_free_entries(EntryList *self) {
@@ -69,6 +69,7 @@ void entry_list_window_unload(Window *window) {
   if (self->entries) entry_list_free_entries(self);
   self->entries_count = 0;
   menu_layer_destroy(self->menu_layer);
+  self->menu_layer = NULL;
   current_entry_list_index--;
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Entry window unloaded");
 }
@@ -84,14 +85,13 @@ EntryList *entry_list_init(MenuLayerSelectCallback onclick) {
   return self;
 }
 
-void entry_list_show(EntryList *self, int8_t parent_type, int8_t parent_play_type, int8_t parent_id) {
+void entry_list_show(EntryList *self, int8_t context, int8_t parent_context, int32_t parent_id) {
   current_entry_list_index++;
   entry_list_stack[current_entry_list_index] = self;
   const bool animated = true;
   window_stack_push(self->window, animated);
-  request_data(parent_type, parent_id);
-
-  self->parent_data_type = parent_play_type;
+  request_data(context, parent_context, parent_id);
+  self->parent_context = parent_context;
   self->parent_id = parent_id;
 }
 
@@ -114,9 +114,11 @@ void entry_list_content_start(EntryList *self, uint16_t count) {
 }
 
 void entry_list_content_add(EntryList *self, uint16_t index, uint32_t id, char* name) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Entry #%d added: %s [%lu]", index, name, (unsigned long) id);
-  self->entries[index].id = id;
-  fucking_copy_string(self->entries[index].name, name, ENTRY_NAME_LEN);
-  self->entries_count++;
-  if (self->menu_layer) menu_layer_reload_data(self->menu_layer);
+  if (self->entries) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Entry #%d added: %s [%lu]", index, name, (unsigned long) id);
+    self->entries[index].id = id;
+    fucking_copy_string(self->entries[index].name, name, ENTRY_NAME_LEN);
+    self->entries_count++;
+    if (self->menu_layer) menu_layer_reload_data(self->menu_layer);
+  }
 }

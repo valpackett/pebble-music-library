@@ -17,57 +17,76 @@ import com.getpebble.android.kit.util.*;
 public class PmlBroadcastReceiver extends PebbleKit.PebbleDataReceiver {
 
   private static final UUID PEBBLE_APP_UUID = UUID.fromString("5b51cba8-7750-441e-a012-f41510348434");
+  // Keys
   private static final int MSG_TYPE = 0;
-  private static final short GET_ARTISTS = 10;
-  private static final short START_ARTISTS = 11;
-  private static final short SEND_ARTISTS = 12;
-  private static final short GET_ALBUMS = 20;
-  private static final short START_ALBUMS = 21;
-  private static final short SEND_ALBUMS = 22;
-  private static final short GET_ALBUM_SONGS = 48;
-  private static final short START_SONGS = 41;
-  private static final short SEND_SONGS = 42;
-  private static final short PLAY_ALBUM_SONG = 43;
+  private static final int MSG_CTX = 1;
+  private static final int MSG_PARENT_CTX = 2;
   private static final int COUNT = 100;
   private static final int INDEX = 101;
   private static final int ID = 102;
   private static final int NAME = 103;
+  // Values
+  private static final short REQ = 0;
+  private static final short RSP_START = 1;
+  private static final short RSP_DATA = 2;
+  private static final short RSP_END = 3; // unused
+  private static final short PLAY = 4;
+  private static final short ARTISTS = 0;
+  private static final short ALBUMS = 1;
+  private static final short PLAYLISTS = 2;
+  private static final short SONGS = 3;
 
   public PmlBroadcastReceiver() {
     this.subscribedUuid = PEBBLE_APP_UUID;
   }
 
-  @Override
-  public void receiveData(final Context context, final int transactionId, final PebbleDictionary data) {
-    PebbleKit.sendAckToPebble(context, transactionId);
-    Log.i("YO", "Got Pebble Msg");
-    MusicLibrary library = new MusicLibrary(context.getContentResolver());
-    switch(Ints.checkedCast(data.getUnsignedInteger(MSG_TYPE))) {
-      case GET_ARTISTS:
-        sendArtists(context, library);
-        break;
-      case GET_ALBUMS:
-        sendAlbums(context, library, data.getInteger(ID));
-        break;
-      case GET_ALBUM_SONGS:
-        sendAlbumSongs(context, library, data.getInteger(ID));
-        break;
-      case PLAY_ALBUM_SONG:
-        playAlbumSong(context, library, data.getInteger(ID), data.getInteger(INDEX));
-        break;
+  private int getInteger(final PebbleDictionary data, int key) {
+    try {
+      return Ints.checkedCast(data.getUnsignedInteger(key));
+    } catch (RuntimeException ex) {
+      try {
+        return Ints.checkedCast(data.getInteger(key));
+      } catch (RuntimeException e) {
+        return -1;
+      }
     }
   }
 
-  private PebbleDictionary countMessage(final short countType, final ArrayList entries) {
+  @Override
+  public void receiveData(final Context context, final int transactionId, final PebbleDictionary data) {
+    PebbleKit.sendAckToPebble(context, transactionId);
+    Log.i("PmlBroadcastReceiver", "Got Pebble Msg");
+    MusicLibrary library = new MusicLibrary(context.getContentResolver());
+    int msgType = getInteger(data, MSG_TYPE);
+    int msgCtx = getInteger(data, MSG_CTX);
+    int msgParentCtx = getInteger(data, MSG_PARENT_CTX);
+    if (msgType == REQ && msgCtx == ARTISTS) {
+      sendArtists(context, library);
+    } else if (msgType == REQ && msgCtx == ALBUMS) {
+      sendAlbums(context, library, data.getInteger(ID));
+    } else if (msgType == REQ && msgCtx == SONGS) {
+      if (msgParentCtx == ALBUMS) {
+        sendAlbumSongs(context, library, data.getInteger(ID));
+      }
+    } else if (msgType == PLAY) {
+      if (msgParentCtx == ALBUMS) {
+        playAlbumSong(context, library, data.getInteger(ID), data.getInteger(INDEX));
+      }
+    }
+  }
+
+  private PebbleDictionary countMessage(final short context, final ArrayList entries) {
     PebbleDictionary countMsg = new PebbleDictionary();
-    countMsg.addUint16(MSG_TYPE, countType);
+    countMsg.addUint16(MSG_TYPE, RSP_START);
+    countMsg.addUint16(MSG_CTX, context);
     countMsg.addUint16(COUNT, (short) entries.size());
     return countMsg;
   }
 
-  private PebbleDictionary entryMessage(final short entryType, final short index, final long id, final String name) {
+  private PebbleDictionary entryMessage(final short context, final short index, final long id, final String name) {
     PebbleDictionary entryMsg = new PebbleDictionary();
-    entryMsg.addUint16(MSG_TYPE, entryType);
+    entryMsg.addUint16(MSG_TYPE, RSP_DATA);
+    entryMsg.addUint16(MSG_CTX, context);
     entryMsg.addUint16(INDEX, index);
     entryMsg.addUint32(ID, Ints.checkedCast(id));
     entryMsg.addString(NAME, name);
@@ -84,10 +103,10 @@ public class PmlBroadcastReceiver extends PebbleKit.PebbleDataReceiver {
   private void sendArtists(final Context context, final MusicLibrary library) {
     ArrayList<PebbleDictionary> messages = new ArrayList<PebbleDictionary>();
     ArrayList<Artist> artists = library.getArtists();
-    messages.add(countMessage(START_ARTISTS, artists));
+    messages.add(countMessage(ARTISTS, artists));
     short index = 0;
     for (Artist artist : artists) {
-      messages.add(entryMessage(SEND_ARTISTS, index, artist.mArtistId, artist.mArtistName));
+      messages.add(entryMessage(ARTISTS, index, artist.mArtistId, artist.mArtistName));
       index += 1;
     }
     startSending(context, messages);
@@ -96,10 +115,10 @@ public class PmlBroadcastReceiver extends PebbleKit.PebbleDataReceiver {
   private void sendAlbums(final Context context, final MusicLibrary library, final Long artistId) {
     ArrayList<PebbleDictionary> messages = new ArrayList<PebbleDictionary>();
     ArrayList<Album> albums = library.getAlbums(artistId);
-    messages.add(countMessage(START_ALBUMS, albums));
+    messages.add(countMessage(ALBUMS, albums));
     short index = 0;
     for (Album album : albums) {
-      messages.add(entryMessage(SEND_ALBUMS, index, album.mAlbumId, album.mAlbumName));
+      messages.add(entryMessage(ALBUMS, index, album.mAlbumId, album.mAlbumName));
       index += 1;
     }
     startSending(context, messages);
@@ -108,10 +127,10 @@ public class PmlBroadcastReceiver extends PebbleKit.PebbleDataReceiver {
   private void sendAlbumSongs(final Context context, final MusicLibrary library, final Long albumId) {
     ArrayList<PebbleDictionary> messages = new ArrayList<PebbleDictionary>();
     ArrayList<Song> songs = library.getAlbumSongs(albumId);
-    messages.add(countMessage(START_SONGS, songs));
+    messages.add(countMessage(SONGS, songs));
     short index = 0;
     for (Song song : songs) {
-      messages.add(entryMessage(SEND_SONGS, index, song.mSongId, song.mSongName));
+      messages.add(entryMessage(SONGS, index, song.mSongId, song.mSongName));
       index += 1;
     }
     startSending(context, messages);

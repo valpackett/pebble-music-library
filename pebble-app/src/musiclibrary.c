@@ -6,34 +6,38 @@
 static void in_received_handler(DictionaryIterator *iter, void *context) {
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Received Message");
   Tuple *msg_type = dict_find(iter, MSG_TYPE);
+  Tuple *msg_ctx = dict_find(iter, MSG_CTX);
   Tuple *count = dict_find(iter, COUNT);
   Tuple *index = dict_find(iter, INDEX);
   Tuple *id = dict_find(iter, ID);
   Tuple *name = dict_find(iter, NAME);
-  if (msg_type) switch(msg_type->value->uint8) {
-    case START_ARTISTS:
-      if (entry_list_is_active(artists) && count) entry_list_content_start(artists, count->value->uint16);
-      break;
-    case SEND_ARTISTS:
-      if (entry_list_is_active(artists) && index && id && name) entry_list_content_add(artists, index->value->uint16, id->value->uint32, name->value->cstring);
-      break;
-    case START_ALBUMS:
-      if (entry_list_is_active(albums) && count) entry_list_content_start(albums, count->value->uint16);
-      break;
-    case SEND_ALBUMS:
-      if (entry_list_is_active(albums) && index && id && name) entry_list_content_add(albums, index->value->uint16, id->value->uint32, name->value->cstring);
-      break;
-    case START_SONGS:
-      if (entry_list_is_active(songs) && count) entry_list_content_start(songs, count->value->uint16);
-      break;
-    case SEND_SONGS:
-      if (entry_list_is_active(songs) && index && id && name) entry_list_content_add(songs, index->value->uint16, id->value->uint32, name->value->cstring);
-      break;
-    default:
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Message has unknown type %d", msg_type->value->uint8);
-      break;
+
+  if (msg_type && msg_ctx) {
+    EntryList *elist = NULL;
+    switch(msg_ctx->value->uint8) {
+      case ARTISTS: elist = artists; break;
+      case ALBUMS: elist = albums; break;
+      case SONGS: elist = songs; break;
+    }
+    if (elist && entry_list_is_active(elist)) {
+      switch(msg_type->value->uint8) {
+        case RSP_START:
+          if (count)
+            entry_list_content_start(elist, count->value->uint16);
+          break;
+        case RSP_DATA:
+          if (index && id && name)
+            entry_list_content_add(elist, index->value->uint16, id->value->uint32, name->value->cstring);
+          break;
+        default:
+          APP_LOG(APP_LOG_LEVEL_DEBUG, "Invalid message: unsupported type");
+          break;
+      }
+    } else {
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "Invalid message: nonexistent or inactive context");
+    }
   } else {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Message has no type");
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Invalid message: no type or context");
   }
 }
 
