@@ -1,9 +1,7 @@
 #include <pebble.h>
 #include "main_menu.h"
-#include "artists.h"
-#include "albums.h"
-#include "songs.h"
 #include "data.c"
+#include "entry_list.h"
 
 static void in_received_handler(DictionaryIterator *iter, void *context) {
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Received Message");
@@ -14,22 +12,22 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *name = dict_find(iter, NAME);
   if (msg_type) switch(msg_type->value->uint8) {
     case START_ARTISTS:
-      if (artists_is_active() && count) artists_content_start(count->value->uint16);
+      if (entry_list_is_active(artists) && count) entry_list_content_start(artists, count->value->uint16);
       break;
     case SEND_ARTISTS:
-      if (artists_is_active() && index && id && name) artists_content_add(index->value->uint16, id->value->uint32, name->value->cstring);
+      if (entry_list_is_active(artists) && index && id && name) entry_list_content_add(artists, index->value->uint16, id->value->uint32, name->value->cstring);
       break;
     case START_ALBUMS:
-      if (albums_is_active() && count) albums_content_start(count->value->uint16);
+      if (entry_list_is_active(albums) && count) entry_list_content_start(albums, count->value->uint16);
       break;
     case SEND_ALBUMS:
-      if (albums_is_active() && index && id && name) albums_content_add(index->value->uint16, id->value->uint32, name->value->cstring);
+      if (entry_list_is_active(albums) && index && id && name) entry_list_content_add(albums, index->value->uint16, id->value->uint32, name->value->cstring);
       break;
     case START_SONGS:
-      if (songs_is_active() && count) songs_content_start(count->value->uint16);
+      if (entry_list_is_active(songs) && count) entry_list_content_start(songs, count->value->uint16);
       break;
     case SEND_SONGS:
-      if (songs_is_active() && index && id && name) songs_content_add(index->value->uint16, id->value->uint32, name->value->cstring);
+      if (entry_list_is_active(songs) && index && id && name) entry_list_content_add(songs, index->value->uint16, id->value->uint32, name->value->cstring);
       break;
     default:
       APP_LOG(APP_LOG_LEVEL_DEBUG, "Message has unknown type %d", msg_type->value->uint8);
@@ -58,18 +56,18 @@ static void init(void) {
   app_message_register_outbox_sent(out_sent_handler);
   app_message_register_outbox_failed(out_failed_handler);
   app_message_open(app_message_inbox_size_maximum(), APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
-  artists_init();
-  albums_init();
-  songs_init();
+  artists = entry_list_init();
+  albums = entry_list_init();
+  songs = entry_list_init();
   main_menu_init();
   main_menu_show();
 }
 
 static void deinit(void) {
   app_message_deregister_callbacks();
-  albums_deinit();
-  artists_deinit();
-  songs_deinit();
+  entry_list_deinit(songs);
+  entry_list_deinit(albums);
+  entry_list_deinit(artists);
   main_menu_deinit();
 }
 

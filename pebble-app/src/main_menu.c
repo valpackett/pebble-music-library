@@ -1,7 +1,7 @@
 #include <pebble.h>
-#include "artists.h"
-#include "albums.h"
+#include "entry_list.h"
 #include "main_menu.h"
+#include "data.c"
 
 #define ARTISTS_ITEM 0
 #define ALBUMS_ITEM 1
@@ -30,8 +30,8 @@ static uint16_t main_menu_get_num_rows_callback(struct MenuLayer *menu_layer, ui
 
 static void main_menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
   switch(cell_index->row) {
-    case ARTISTS_ITEM: artists_show(); break;
-    case ALBUMS_ITEM: albums_show(-1); break;
+    case ARTISTS_ITEM: entry_list_show(artists, GET_ARTISTS, GET_ARTISTS, -1); break;
+    case ALBUMS_ITEM: entry_list_show(albums, GET_ALBUMS, GET_ALBUM_SONGS, -1); break;
     case PLAYLISTS_ITEM: break;
   }
 }
