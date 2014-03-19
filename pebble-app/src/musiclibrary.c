@@ -56,9 +56,9 @@ static void init(void) {
   app_message_register_outbox_sent(out_sent_handler);
   app_message_register_outbox_failed(out_failed_handler);
   app_message_open(app_message_inbox_size_maximum(), APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
-  artists = entry_list_init();
-  albums = entry_list_init();
-  songs = entry_list_init();
+  artists = entry_list_init(artist_select_callback);
+  albums = entry_list_init(album_select_callback);
+  songs = entry_list_init(song_select_callback);
   main_menu_init();
   main_menu_show();
 }

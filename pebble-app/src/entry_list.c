@@ -18,17 +18,25 @@ static uint16_t entry_list_get_num_rows_callback(struct MenuLayer *menu_layer, u
   return self->entries_count;
 }
 
-static void entry_list_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
+void artist_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
   EntryList *self = ((EntryList *) data);
   Entry entry = self->entries[cell_index->row];
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Clicked entry #%d -- %s", cell_index->row, entry.name);
-  if (self->parent_data_type == GET_ALBUM_SONGS) {
-    entry_list_show(songs, GET_ALBUM_SONGS, PLAY_ALBUM_SONG, entry.id);
-  } else if (self->parent_data_type == GET_ARTISTS) {
-    entry_list_show(albums, GET_ALBUMS, GET_ALBUM_SONGS, entry.id);
-  } else {
-    request_play(self->parent_data_type, self->parent_id, cell_index->row);
-  }
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Clicked artist #%d -- %s", cell_index->row, entry.name);
+  entry_list_show(albums, GET_ALBUMS, GET_ALBUM_SONGS, entry.id);
+}
+
+void album_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
+  EntryList *self = ((EntryList *) data);
+  Entry entry = self->entries[cell_index->row];
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Clicked album #%d -- %s", cell_index->row, entry.name);
+  entry_list_show(songs, GET_ALBUM_SONGS, PLAY_ALBUM_SONG, entry.id);
+}
+
+void song_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
+  EntryList *self = ((EntryList *) data);
+  Entry entry = self->entries[cell_index->row];
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Clicked song #%d -- %s", cell_index->row, entry.name);
+  request_play(self->parent_data_type, self->parent_id, cell_index->row);
 }
 
 static void entry_list_free_entries(EntryList *self) {
@@ -49,7 +57,7 @@ void entry_list_window_load(Window *window) {
     .get_cell_height = (MenuLayerGetCellHeightCallback) entry_list_get_cell_height_callback,
     .draw_row = (MenuLayerDrawRowCallback) entry_list_draw_row_callback,
     .get_num_rows = (MenuLayerGetNumberOfRowsInSectionsCallback) entry_list_get_num_rows_callback,
-    .select_click = (MenuLayerSelectCallback) entry_list_select_callback,
+    .select_click = (MenuLayerSelectCallback) self->onclick,
   });
   menu_layer_set_click_config_onto_window(self->menu_layer, self->window);
   layer_add_child(window_layer, menu_layer_get_layer(self->menu_layer));
@@ -65,9 +73,10 @@ void entry_list_window_unload(Window *window) {
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Entry window unloaded");
 }
 
-EntryList *entry_list_init() {
+EntryList *entry_list_init(MenuLayerSelectCallback onclick) {
   EntryList *self = malloc(sizeof(EntryList));
   self->window = window_create();
+  self->onclick = onclick;
   window_set_window_handlers(self->window, (WindowHandlers) {
     .load = entry_list_window_load,
     .unload = entry_list_window_unload,
