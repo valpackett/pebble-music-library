@@ -29,7 +29,7 @@ static void main_menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_ind
   switch(cell_index->row) {
     case ARTISTS_ITEM: entry_list_show(artists, ARTISTS, -1, -1); break;
     case ALBUMS_ITEM: entry_list_show(albums, ALBUMS, -1, -1); break;
-    case PLAYLISTS_ITEM: break;
+    case PLAYLISTS_ITEM: entry_list_show(playlists, PLAYLISTS, -1, -1); break;
   }
 }
 

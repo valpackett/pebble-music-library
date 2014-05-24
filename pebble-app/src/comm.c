@@ -1,6 +1,6 @@
 #include "comm.h"
 
-void request_data(int8_t context, int8_t parent_context, int8_t id) {
+void request_data(int8_t context, int8_t parent_context, int32_t id) {
   if (bluetooth_connection_service_peek()) {
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
@@ -20,7 +20,7 @@ void request_data(int8_t context, int8_t parent_context, int8_t id) {
   }
 }
 
-void request_play(int8_t parent_context, int32_t parent_id, int8_t index) {
+void request_play_song(int8_t parent_context, int32_t parent_id, int8_t index) {
   if (bluetooth_connection_service_peek()) {
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
@@ -32,6 +32,20 @@ void request_play(int8_t parent_context, int32_t parent_id, int8_t index) {
     dict_write_tuplet(iter, &mid);
     Tuplet mindex = TupletInteger(INDEX, index);
     dict_write_tuplet(iter, &mindex);
+    app_message_outbox_send();
+  }
+}
+
+void request_play_playlist(int32_t id) {
+  if (bluetooth_connection_service_peek()) {
+    DictionaryIterator *iter;
+    app_message_outbox_begin(&iter);
+    Tuplet mmtype = TupletInteger(MSG_TYPE, PLAY);
+    dict_write_tuplet(iter, &mmtype);
+    Tuplet mmpctx = TupletInteger(MSG_CTX, PLAYLISTS);
+    dict_write_tuplet(iter, &mmpctx);
+    Tuplet mid = TupletInteger(ID, id);
+    dict_write_tuplet(iter, &mid);
     app_message_outbox_send();
   }
 }

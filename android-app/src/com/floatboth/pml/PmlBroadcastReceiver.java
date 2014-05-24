@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import android.provider.MediaStore.Audio.Albums;
+import android.provider.MediaStore.Audio.Playlists;
 
 import java.util.UUID;
 import java.util.ArrayList;
@@ -60,17 +61,21 @@ public class PmlBroadcastReceiver extends PebbleKit.PebbleDataReceiver {
     int msgType = getInteger(data, MSG_TYPE);
     int msgCtx = getInteger(data, MSG_CTX);
     int msgParentCtx = getInteger(data, MSG_PARENT_CTX);
-    if (msgType == REQ && msgCtx == ARTISTS) {
-      sendArtists(context, library);
-    } else if (msgType == REQ && msgCtx == ALBUMS) {
-      sendAlbums(context, library, data.getInteger(ID));
-    } else if (msgType == REQ && msgCtx == SONGS) {
-      if (msgParentCtx == ALBUMS) {
+    if (msgType == REQ) {
+      if (msgCtx == ARTISTS) {
+        sendArtists(context, library);
+      } else if (msgCtx == ALBUMS) {
+        sendAlbums(context, library, data.getInteger(ID));
+      } else if (msgCtx == SONGS && msgParentCtx == ALBUMS) {
         sendAlbumSongs(context, library, data.getInteger(ID));
+      } else if (msgCtx == PLAYLISTS) {
+        sendPlaylists(context, library);
       }
     } else if (msgType == PLAY) {
       if (msgParentCtx == ALBUMS) {
         playAlbumSong(context, library, data.getInteger(ID), data.getInteger(INDEX));
+      } else if (msgCtx == PLAYLISTS) {
+        playPlaylist(context, library, data.getInteger(ID));
       }
     }
   }
@@ -144,6 +149,32 @@ public class PmlBroadcastReceiver extends PebbleKit.PebbleDataReceiver {
     intent.putExtra("album", albumId.toString());
     intent.putExtra("albumId", albumId);
     intent.putExtra("position", Ints.checkedCast(position));
+    try {
+      context.startActivity(intent);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void sendPlaylists(final Context context, final MusicLibrary library) {
+    ArrayList<PebbleDictionary> messages = new ArrayList<PebbleDictionary>();
+    ArrayList<Playlist> playlists = library.getPlaylists();
+    messages.add(countMessage(PLAYLISTS, playlists));
+    short index = 0;
+    for (Playlist playlist : playlists) {
+      messages.add(entryMessage(PLAYLISTS, index, playlist.mPlaylistId, playlist.mPlaylistName));
+      index += 1;
+    }
+    startSending(context, messages);
+  }
+
+  private void playPlaylist(final Context context, final MusicLibrary library, final Long playlistId) {
+    ArrayList<Playlist> playlists = library.getPlaylists();
+    Intent intent = new Intent(Intent.ACTION_VIEW);
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    intent.setType(Playlists.CONTENT_TYPE);
+    intent.putExtra("playlist", playlistId.toString());
+    intent.putExtra("playlistId", playlistId);
     try {
       context.startActivity(intent);
     } catch (Exception e) {

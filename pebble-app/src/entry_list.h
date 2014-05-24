@@ -20,11 +20,13 @@ typedef struct {
 EntryList *artists;
 EntryList *albums;
 EntryList *songs;
+EntryList *playlists;
 
 EntryList *entry_list_init();
 void artist_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data);
 void album_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data);
 void song_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data);
+void playlist_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data);
 void entry_list_show(EntryList *self, int8_t context, int8_t parent_context, int32_t parent_id);
 void entry_list_deinit(EntryList *self);
 bool entry_list_is_active(EntryList *self);

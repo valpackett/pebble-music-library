@@ -34,7 +34,14 @@ void song_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
   EntryList *self = ((EntryList *) data);
   Entry entry = self->entries[cell_index->row];
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Clicked song #%d -- %s", cell_index->row, entry.name);
-  request_play(self->parent_context, self->parent_id, cell_index->row);
+  request_play_song(self->parent_context, self->parent_id, cell_index->row);
+}
+
+void playlist_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
+  EntryList *self = ((EntryList *) data);
+  Entry entry = self->entries[cell_index->row];
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Clicked playlist #%d -- %s", cell_index->row, entry.name);
+  request_play_playlist(entry.id);
 }
 
 static void entry_list_free_entries(EntryList *self) {

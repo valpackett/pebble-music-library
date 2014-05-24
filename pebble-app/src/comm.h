@@ -26,7 +26,8 @@ enum mcontext {
 #define ID 102
 #define NAME 103
 
-void request_data(int8_t context, int8_t parent_context, int8_t id);
-void request_play(int8_t parent_context, int32_t parent_id, int8_t index);
+void request_data(int8_t context, int8_t parent_context, int32_t id);
+void request_play_song(int8_t parent_context, int32_t parent_id, int8_t index);
+void request_play_playlist(int32_t id);
 
 #endif

@@ -18,6 +18,7 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
       case ARTISTS: elist = artists; break;
       case ALBUMS: elist = albums; break;
       case SONGS: elist = songs; break;
+      case PLAYLISTS: elist = playlists; break;
     }
     if (elist && entry_list_is_active(elist)) {
       switch(msg_type->value->uint8) {
@@ -63,12 +64,14 @@ static void init(void) {
   artists = entry_list_init(artist_select_callback);
   albums = entry_list_init(album_select_callback);
   songs = entry_list_init(song_select_callback);
+  playlists = entry_list_init(playlist_select_callback);
   main_menu_init();
   main_menu_show();
 }
 
 static void deinit(void) {
   app_message_deregister_callbacks();
+  entry_list_deinit(playlists);
   entry_list_deinit(songs);
   entry_list_deinit(albums);
   entry_list_deinit(artists);
